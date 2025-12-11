@@ -1,18 +1,22 @@
 # 🎮 Giveaway Arcade for Discord
 
-A free, browser-based tool designed to make Discord community giveaways exciting and transparent. Stop scrolling through chat manually—turn your giveaway into a game!
+A **free, browser-based giveaway tool** built to make Discord community events *fun, fair, and visually exciting*.  
+Stop scrolling through walls of chat — turn your giveaway into a game!
 
-<!-- 1. Cover Image -->
 ![Giveaway Arcade Main View](Main.png)
-
-### 🔴 [CLICK HERE TO USE THE TOOL (Live Demo)](https://lileshborkar.github.io/Giveaway-Arcade-for-Discord/)
 
 ---
 
-## 🧪 Try it now! (Sample Data)
-Want to see how it works? **Copy the text block below** and paste it into the tool to test the games immediately.
+### 🔴 **[CLICK HERE TO USE THE TOOL (Live Demo)](https://lileshborkar.github.io/Giveaway-Arcade-for-Discord/)**
 
-**Code Word:** `bear`
+---
+
+## 🧪 Try It Instantly (Sample Data)
+
+Want to test the arcade without setting up anything?  
+**Copy the text below and paste it into the tool.**
+
+**Sample Code Word:** `bear`
 
 ```text
 IronMan — 9:00 PM
@@ -51,32 +55,75 @@ Loki — 9:16 PM
 bear
 Thanos — 9:17 PM
 bear
+```
 
-✨ Gameplay Preview
-Choose from 4 different game modes to pick your winner!
-<!-- 2. Gameplay Image -->
-![alt text](Main1.png)
-🚀 Features
-4 Game Modes:
-🏎️ Survival Race: A chaotic drag race where participants crash out until one winner remains.
-💀 Battle Royale: Players are eliminated one-by-one from a grid.
-🎰 Loot Roll: A classic horizontal spinner (CS:GO style).
-🎡 Spin Wheel: The traditional lucky wheel.
-Smart Parsing: Automatically detects Username — Time formats from Discord chat logs.
-Duplicate Protection: Filters out users who spam the code word multiple times.
-Fireworks Celebration: Automatic visual effects for the winner.
-100% Client-Side: No data is sent to any server. It runs entirely in your browser for privacy.
+---
 
-📚 How to Use
-The tool includes a built-in guide to help you copy-paste correctly.
-<!-- 3. Help Image -->
-![alt text](help.png)
-Copy Chat: Go to your Discord channel, press Ctrl+A (Select All) and Ctrl+C (Copy).
-Paste: Paste the text into the tool.
-Set Keyword: Enter the specific word users had to type (e.g., "bear" or "cooked").
-Play: Select a game mode and click PLAY.
-🛠️ Installation
-No installation needed! Just use the Live Link.
-If you want to run it locally:
-Download index.html from this repository.
-Open it in Chrome, Edge, or Firefox.
+## ✨ Gameplay Preview
+
+Choose from **4 unique game modes**, each offering a different style of winner selection.
+
+![Gameplay Preview](Gameplay.png)
+
+---
+
+## 🚀 Features
+
+### 🎮 Four Game Modes
+- 🏎️ **Survival Race** – A chaotic drag race where players crash out until only one remains.  
+- 💀 **Battle Royale** – A grid-style elimination game.  
+- 🎰 **Loot Roll** – Classic horizontal spinner (CS:GO style).  
+- 🎡 **Spin Wheel** – The traditional lucky wheel.
+
+### 🧠 Smart Chat Parsing  
+Automatically detects messages in the `Username — Time` format from Discord logs.
+
+### 🔁 Duplicate Protection  
+Users typing the code word multiple times are only counted *once*.
+
+### 🎆 Fireworks Celebration  
+Beautiful animated celebration for the winner.
+
+### 🔒 100% Client-Side  
+**No servers, no data collection.** Everything runs inside your browser.
+
+---
+
+## 📚 How to Use
+
+The tool includes a built-in guide, but here’s a quick version:
+
+![How to Use](Help.png)
+
+1. **Copy Chat**  
+   - In your Discord channel: press **Ctrl + A** → **Ctrl + C**.
+
+2. **Paste into the Tool**  
+   - Paste the chat log in the text box.
+
+3. **Set the Keyword**  
+   - Enter the code word users had to type (e.g., `bear`, `cooked`).
+
+4. **Play a Game Mode**  
+   - Select a mode → click **PLAY** → watch the winner be chosen live!
+
+---
+
+## 🛠️ Installation (Optional)
+
+No installation needed — just use the **Live Demo**.
+
+If you want to run it locally instead:
+
+1. Download the repo.  
+2. Make sure these files are in the **root folder**:
+   - `index.html`
+   - `Main.png`
+   - `Gameplay.png`
+   - `Help.png`
+3. Open `index.html` in **Chrome, Edge, or Firefox**.
+
+---
+
+## 👨‍💻 Created By  
+**Lilesh Borkar**
