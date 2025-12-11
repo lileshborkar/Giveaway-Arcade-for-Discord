@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giveaway Arcade for Discord (Final)</title>
+    <style>
+        /* --- BASE STYLES --- */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #202225; color: white; display: flex; flex-direction: column; align-items: center; height: 100vh; margin: 0; padding: 10px; box-sizing: border-box; overflow: hidden; }
+        
+        h1 { margin: 10px 0 10px 0; font-size: 1.5em; color: #fff; letter-spacing: 1px; }
+
+        /* --- SOCIAL ICONS --- */
+        .social-bar { position: absolute; top: 20px; right: 20px; display: flex; gap: 15px; z-index: 1000; align-items: center; }
+        .social-icon { width: 32px; height: 32px; fill: #bbb; transition: transform 0.2s, fill 0.2s; cursor: pointer; }
+        .social-icon:hover { transform: scale(1.1); fill: #fff; }
+        .social-icon.instagram:hover { fill: #E1306C; }
+        .social-icon.x:hover { fill: #1DA1F2; } 
+        .social-icon.discord:hover { fill: #5865F2; }
+        
+        /* Help Button Style */
+        .help-icon { 
+            width: 32px; height: 32px; border-radius: 50%; border: 2px solid #bbb; color: #bbb; 
+            display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2em; 
+            cursor: pointer; transition: 0.2s; 
+        }
+        .help-icon:hover { border-color: #faa61a; color: #faa61a; transform: scale(1.1); }
+
+        .main-layout { display: flex; gap: 15px; width: 100%; max-width: 1600px; height: 90vh; }
+        
+        .panel { background: #2f3136; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
+        
+        /* LEFT PANEL */
+        .col-left { flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 10px; }
+        textarea { background: #40444b; color: white; border: none; padding: 10px; border-radius: 5px; flex-grow: 1; resize: none; font-family: monospace; font-size: 0.85em; outline: none; }
+        input[type="text"] { background: #40444b; color: white; border: none; padding: 12px; border-radius: 5px; width: 100%; border: 1px solid #555; box-sizing: border-box; outline: none; }
+        button { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; width: 100%; }
+        .btn-primary { background: #5865F2; color: white; }
+        .btn-primary:hover { background: #4752c4; }
+
+        /* CENTER PANEL */
+        .col-center { flex: 3; min-width: 500px; display: flex; flex-direction: column; align-items: center; position: relative; }
+        .game-selector { display: flex; gap: 8px; margin-bottom: 15px; background: #202225; padding: 5px; border-radius: 8px; }
+        .tab-btn { background: transparent; color: #aaa; padding: 8px 20px; cursor: pointer; border-radius: 4px; font-weight: bold; border: none; }
+        .tab-btn.active { background: #5865F2; color: white; }
+        .winner-display { font-size: 2em; font-weight: bold; color: #faa61a; min-height: 1.2em; text-align: center; margin-bottom: 10px; text-shadow: 0 4px 10px rgba(0,0,0,0.8); z-index: 50; }
+
+        /* GAME CONTAINER */
+        .game-view-container { flex-grow: 1; width: 100%; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #222; border-radius: 8px; margin-bottom: 15px; border: 1px solid #333; }
+
+        /* RIGHT PANEL */
+        .col-right { flex: 1.2; min-width: 250px; display: flex; flex-direction: column; gap: 10px; }
+        .list-container { flex: 1; background: #222; border-radius: 5px; display: flex; flex-direction: column; overflow: hidden; }
+        .list-header { background: #202225; padding: 8px; font-size: 0.9em; font-weight: bold; color: #aaa; border-bottom: 1px solid #333; display: flex; justify-content: space-between; }
+        .list-scroll { flex: 1; overflow-y: auto; padding: 5px; }
+        ul { list-style: none; padding: 0; margin: 0; }
+        li { padding: 4px 8px; border-bottom: 1px solid #333; font-size: 0.85em; color: #ccc; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+        td { padding: 6px; border-bottom: 1px solid #333; color: #ddd; }
+        tr:first-child td { color: #faa61a; font-weight: bold; }
+
+        /* --- HELP MODAL --- */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-content { background: #2f3136; padding: 30px; border-radius: 10px; width: 600px; max-width: 90%; max-height: 85vh; overflow-y: auto; position: relative; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: fadeIn 0.3s ease; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5em; cursor: pointer; color: #aaa; transition: 0.2s; }
+        .close-btn:hover { color: #fff; }
+        
+        .help-section h2 { color: #fff; border-bottom: 2px solid #5865F2; padding-bottom: 10px; margin-top: 0; }
+        .help-section h3 { color: #faa61a; margin-bottom: 10px; margin-top: 20px; font-size: 1.1em; }
+        .help-step { display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-start; }
+        .step-num { background: #5865F2; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; font-size: 0.9em; margin-top: 2px; }
+        .step-text { font-size: 0.95em; color: #dcddde; line-height: 1.5; }
+        .code-block { background: #202225; padding: 5px 10px; border-radius: 4px; font-family: monospace; color: #faa61a; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- GAMES CSS --- */
+        #view-wheel { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+        .wheel-scaler { width: 450px; height: 450px; position: relative; }
+        .wheel-arrow { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 30px solid transparent; border-right: 30px solid transparent; border-top: 50px solid white; z-index: 10; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5)); }
+        canvas { width: 100%; height: 100%; }
+
+        #view-roll { width: 100%; height: 100%; display: none; align-items: center; justify-content: center; }
+        .roll-window { width: 95%; height: 140px; background: #202225; border: 4px solid #faa61a; position: relative; overflow: hidden; border-radius: 8px; box-shadow: inset 0 0 30px rgba(0,0,0,0.9); }
+        .roll-center-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background: #ED4245; z-index: 20; transform: translateX(-50%); box-shadow: 0 0 15px #ED4245; }
+        .roll-strip { display: flex; height: 100%; align-items: center; position: absolute; left: 0; will-change: transform; } 
+        .roll-card { width: 140px; min-width: 140px; height: 110px; background: #40444b; margin: 0 5px; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: bold; border-radius: 5px; border: 1px solid #555; flex-shrink: 0; font-size: 1em; word-break: break-all; padding: 5px; color: #ddd; box-sizing: border-box; }
+        .roll-card.winner-highlight { background: #faa61a !important; color: black !important; border-color: white; box-shadow: 0 0 25px #faa61a; z-index: 10; transform: scale(1.1); transition: transform 0.5s; }
+
+        #view-battle { width: 100%; height: 100%; display: none; overflow-y: auto; align-content: flex-start; justify-content: center; flex-wrap: wrap; padding: 10px; gap: 8px; }
+        .battle-card { background: #5865F2; padding: 10px; border-radius: 4px; font-size: 0.85em; transition: all 0.5s ease; cursor: default; height: fit-content; }
+        .battle-card.eliminated { opacity: 0; transform: scale(0); width: 0; padding: 0; margin: 0; overflow: hidden; }
+        .battle-card.survivor { background: #faa61a; color: black; transform: scale(2); font-size: 1.2em; margin: auto; box-shadow: 0 0 50px #faa61a; z-index: 100; border: 2px solid white; position: absolute; top: 40%; }
+
+        #view-race { width: 100%; height: 100%; display: none; position: relative; background: #1a1a1a; overflow: hidden; }
+        .race-bg { position: absolute; top:0; left:0; width:100%; height:100%; background: repeating-linear-gradient(90deg, #222 0px, #222 100px, #2a2a2a 100px, #2a2a2a 200px); opacity: 0.5; }
+        .finish-line { position: absolute; right: 40px; top: 0; bottom: 0; width: 15px; background-image: linear-gradient(45deg, #fff 25%, #000 25%, #000 50%, #fff 50%, #fff 75%, #000 75%, #000 100%); background-size: 30px 30px; z-index: 0; box-shadow: -5px 0 10px rgba(0,0,0,0.5); }
+        
+        .racer-container { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; transition: left 0.1s linear; z-index: 1; width: 80px; }
+        .racer-name { font-size: 0.8em; color: white; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px; white-space: nowrap; margin-bottom: 2px; text-align: center; }
+        .racer-vehicle { font-size: 1.8em; transform: scaleX(-1); filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
+        .racer-container.crashed { filter: grayscale(100%); opacity: 0.3; z-index: 0; transition: opacity 0.5s; }
+        .racer-container.crashed .racer-vehicle { transform: scaleX(1) rotate(20deg); }
+        .racer-container.winner-finish { z-index: 999; transform: scale(1.5); filter: drop-shadow(0 0 20px gold); transition: transform 0.5s; }
+        .racer-container.winner-finish .racer-vehicle { transform: scaleX(-1); }
+
+        #raceOverlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.85); padding: 40px; border-radius: 20px; border: 2px solid #faa61a; text-align: center; display: none; z-index: 2000; backdrop-filter: blur(5px); box-shadow: 0 0 50px #faa61a; }
+        #raceOverlayName { color: #faa61a; font-size: 3em; font-weight: bold; display: block; margin-top: 10px; }
+
+        .btn-action { background: #3ba55c; color: white; font-size: 1.5em; padding: 20px; margin-top: auto; }
+        .btn-action:disabled { background: #444; color: #888; cursor: not-allowed; }
+        #fireworksCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+    </style>
+</head>
+<body>
+
+    <!-- HELP MODAL -->
+    <div id="helpModal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-btn" onclick="toggleHelp()">×</span>
+            <div class="help-section">
+                <h2>📚 How to Use</h2>
+                
+                <div class="help-step">
+                    <div class="step-num">1</div>
+                    <div class="step-text">
+                        <strong>Copy Discord Chat:</strong><br>
+                        Go to your Discord channel. Select the chat messages (Ctrl+A) and copy them (Ctrl+C). Ensure you copy both the <em>Usernames</em> and the <em>Timestamps</em>.
+                    </div>
+                </div>
+
+                <div class="help-step">
+                    <div class="step-num">2</div>
+                    <div class="step-text">
+                        <strong>Paste & Keyword:</strong><br>
+                        Paste the text into the box on the left. In the <strong>Code Word</strong> box, type the word users were asked to type (e.g., <span class="code-block">cooked</span> or <span class="code-block">bear</span>).
+                    </div>
+                </div>
+
+                <div class="help-step">
+                    <div class="step-num">3</div>
+                    <div class="step-text">
+                        <strong>Load List:</strong><br>
+                        Click <strong>🔄 Load List</strong>. The tool will scan the chat, remove duplicates, and show the "Participants List" on the right.
+                    </div>
+                </div>
+
+                <div class="help-step">
+                    <div class="step-num">4</div>
+                    <div class="step-text">
+                        <strong>Select Game & Play:</strong><br>
+                        Choose a game mode (Wheel, Roll, Battle, or Race) and click the big Green <strong>PLAY GAME</strong> button. Good luck!
+                    </div>
+                </div>
+
+                <!-- NEW LOGIC EXPLANATION -->
+                <h3 style="border-top: 1px solid #444; padding-top: 15px; margin-top: 20px; color: #faa61a;">🕵️ How Names Are Detected</h3>
+                <p style="color: #ccc; font-size: 0.9em; line-height: 1.5;">
+                    The tool scans your text for <strong>Discord Timestamps</strong> (e.g., <span class="code-block">— 9:48 PM</span>). It captures everything <em>before</em> the timestamp as the Username.
+                </p>
+
+                <h4 style="color: #fff; margin-bottom: 5px; font-size: 1em;">✅ Recommendations</h4>
+                <ul style="padding-left: 20px; color: #aaa; font-size: 0.9em; margin-top: 0; line-height: 1.4;">
+                    <li><strong>Copy Everything:</strong> You must copy the Name, Time, AND Message.</li>
+                    <li><strong>Standard Characters:</strong> Letters, Numbers, and Emojis work perfectly.</li>
+                </ul>
+
+                <h4 style="color: #ED4245; margin-bottom: 5px; font-size: 1em;">❌ What to Avoid</h4>
+                <ul style="padding-left: 20px; color: #aaa; font-size: 0.9em; margin-top: 0; line-height: 1.4;">
+                    <li><strong>Timestamps in Name:</strong> Don't use names like "John 10:00 PM" as it confuses the scanner.</li>
+                    <li><strong>Incomplete Copy:</strong> If you only copy the message (e.g. just "Bear"), the tool cannot find the winner.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOCIAL ICONS -->
+    <div class="social-bar">
+        <!-- HELP ICON -->
+        <div class="help-icon" onclick="toggleHelp()" title="How to Use">?</div>
+
+        <a href="https://www.instagram.com/lileshborkar_/" target="_blank" title="Instagram">
+            <svg class="social-icon instagram" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z" /></svg>
+        </a>
+        <a href="https://x.com/LileshBorkar" target="_blank" title="X / Twitter">
+            <svg class="social-icon x" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        </a>
+        <a href="https://discord.gg/uU6KpMvP2T" target="_blank" title="Join Discord">
+            <svg class="social-icon discord" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037 13.504 13.504 0 0 0-.585 1.205 17.78 17.78 0 0 0-7.535 0 13.527 13.527 0 0 0-.59-1.205.072.072 0 0 0-.078-.037 19.782 19.782 0 0 0-4.885 1.515.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+        </a>
+    </div>
+
+    <canvas id="fireworksCanvas"></canvas>
+
+    <h1>🎮 Giveaway Arcade for Discord</h1>
+
+    <div class="main-layout">
+        
+        <!-- LEFT: INPUT -->
+        <div class="panel col-left">
+            <h3 style="margin-top:0;">Copy Paste Discord Chat Here</h3>
+            <textarea id="chatInput" placeholder="Paste Discord chat history..."></textarea>
+            <label>Code Word:</label>
+            <input type="text" id="keyword" placeholder="e.g. Bear">
+            <button class="btn-primary" onclick="parseChat()">🔄 Load List</button>
+            <div id="statusMsg" style="font-size:0.9em; min-height:1.2em;"></div>
+        </div>
+
+        <!-- CENTER: GAME -->
+        <div class="panel col-center">
+            <div class="game-selector">
+                <button class="tab-btn active" onclick="switchGame('wheel')">🎡 Wheel</button>
+                <button class="tab-btn" onclick="switchGame('roll')">🎰 Roll</button>
+                <button class="tab-btn" onclick="switchGame('battle')">💀 Battle</button>
+                <button class="tab-btn" onclick="switchGame('race')">🏎️ Race</button>
+            </div>
+
+            <div class="winner-display" id="winnerText">Ready?</div>
+
+            <div class="game-view-container">
+                
+                <!-- WHEEL -->
+                <div id="view-wheel">
+                    <div class="wheel-scaler">
+                        <div class="wheel-arrow"></div>
+                        <canvas id="wheelCanvas" width="800" height="800"></canvas>
+                    </div>
+                </div>
+
+                <!-- ROLL -->
+                <div id="view-roll">
+                    <div class="roll-window">
+                        <div class="roll-center-line"></div>
+                        <div class="roll-strip" id="rollStrip"></div>
+                    </div>
+                </div>
+
+                <!-- BATTLE -->
+                <div id="view-battle"></div>
+
+                <!-- RACE -->
+                <div id="view-race">
+                    <div class="race-bg"></div>
+                    <div class="finish-line"></div>
+                    <div id="raceOverlay">
+                        <div style="color:#fff; font-size:1.2em;">WINNER</div>
+                        <span id="raceOverlayName">Name</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-action" id="playBtn" onclick="playGame()" disabled>PLAY GAME</button>
+        </div>
+
+        <!-- RIGHT: LISTS -->
+        <div class="panel col-right">
+            <div class="list-container">
+                <div class="list-header">
+                    <span>Participants List</span>
+                    <span id="countPart">0</span>
+                </div>
+                <div class="list-scroll">
+                    <ul id="participantList"></ul>
+                </div>
+            </div>
+
+            <div class="list-container">
+                <div class="list-header">
+                    <span>🏆 Winners History</span>
+                </div>
+                <div class="list-scroll">
+                    <table id="winnerTable">
+                        <tbody id="winnerBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+<script>
+    // --- HELP MODAL LOGIC ---
+    function toggleHelp() {
+        const modal = document.getElementById('helpModal');
+        modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    // --- FIREWORKS ENGINE ---
+    const fCanvas = document.getElementById('fireworksCanvas');
+    const fCtx = fCanvas.getContext('2d');
+    let particles = [];
+    let isCelebrating = false;
+    
+    function resizeCanvas() { fCanvas.width = window.innerWidth; fCanvas.height = window.innerHeight; }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function animateFireworks() {
+        if(!isCelebrating && particles.length === 0) {
+            fCtx.clearRect(0,0,fCanvas.width, fCanvas.height); 
+            return;
+        }
+        requestAnimationFrame(animateFireworks);
+        fCtx.globalCompositeOperation = 'destination-out';
+        fCtx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        fCtx.fillRect(0, 0, fCanvas.width, fCanvas.height);
+        fCtx.globalCompositeOperation = 'lighter';
+        particles.forEach((p, i) => {
+            p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.alpha -= 0.01;
+            fCtx.globalAlpha = p.alpha; fCtx.fillStyle = p.color;
+            fCtx.beginPath(); fCtx.arc(p.x, p.y, 3, 0, Math.PI*2); fCtx.fill();
+            if(p.alpha<=0) particles.splice(i,1);
+        });
+    }
+
+    function spawnFirework(x,y) {
+        for(let i=0; i<80; i++) {
+            particles.push({x:x, y:y, vx:(Math.random()-0.5)*10, vy:(Math.random()-0.5)*10, alpha:1, color:`hsl(${Math.random()*360},100%,50%)`});
+        }
+    }
+
+    function celebrate() {
+        isCelebrating = true;
+        animateFireworks(); 
+        let count = 0;
+        let int = setInterval(() => {
+            spawnFirework(window.innerWidth*0.2 + Math.random()*window.innerWidth*0.6, window.innerHeight*0.3 + Math.random()*window.innerHeight*0.4);
+            count++; 
+            if(count>10) {
+                clearInterval(int);
+                setTimeout(() => { isCelebrating = false; }, 2000); 
+            }
+        }, 300);
+    }
+
+    // --- GAME LOGIC ---
+    let participants = [];
+    let currentGame = 'wheel';
+    let isPlaying = false;
+    let wheelRotation = 0; 
+    let raceEntities = []; // Store race objects for immediate display
+    const colors = ['#5865F2', '#EB459E', '#FEE75C', '#57F287', '#ED4245', '#FFFFFF', '#99AAB5'];
+
+    function parseChat() {
+        if(isPlaying) return;
+        const text = document.getElementById('chatInput').value;
+        const keyword = document.getElementById('keyword').value.toLowerCase();
+        const status = document.getElementById('statusMsg');
+
+        if(!text || !keyword) {
+            status.innerText = "⚠️ Missing input"; status.style.color = "#FEE75C"; return;
+        }
+
+        let temp = [];
+        const lines = text.split('\n');
+        let buffer = "";
+        
+        // Strict timestamp regex: matches "— 9:48 PM" or "User — 9:48 PM" or "User [TAB] 9:48 PM"
+        const regex = /[—\-\:]\s*\d{1,2}:\d{2}\s*(?:AM|PM)?|Today\s+at|Yesterday\s+at|\d{1,2}\/\d{1,2}\/\d{2,4}/i;
+        
+        lines.forEach(line => {
+            let cleanLine = line.trim();
+            if(!cleanLine) return;
+
+            // Is this a timestamp line?
+            if (regex.test(cleanLine)) {
+                // If it starts with dash, name is in buffer
+                if(cleanLine.startsWith('—') || cleanLine.startsWith('-')) {
+                    if(buffer) { /* buffer is valid name */ }
+                } else {
+                    // Name is part of this line. Split by dash/time
+                    // Fallback: If line has timestamp, everything before it is name
+                    // But here we rely on the next loop to verify Code Word
+                    buffer = cleanLine.split(/[—\-\:]/)[0].trim();
+                }
+            } else {
+                // Not a timestamp. Is it the code word?
+                if (cleanLine.toLowerCase().includes(keyword)) {
+                    if(buffer) temp.push(buffer);
+                } else {
+                    // It is text. Save as potential name
+                    buffer = cleanLine;
+                }
+            }
+        });
+
+        participants = [...new Set(temp)];
+        
+        if(participants.length > 0) {
+            status.innerText = `✅ Loaded ${participants.length} Participants`; status.style.color = "#57F287";
+            document.getElementById('playBtn').disabled = false;
+        } else {
+            status.innerText = "❌ No matches found"; status.style.color = "#ED4245";
+            document.getElementById('playBtn').disabled = true;
+        }
+        updateLists();
+        resetView();
+    }
+
+    function updateLists() {
+        const ul = document.getElementById('participantList');
+        ul.innerHTML = '';
+        participants.forEach(p => {
+            let li = document.createElement('li'); li.innerText = p; ul.appendChild(li);
+        });
+        document.getElementById('countPart').innerText = participants.length;
+    }
+
+    function switchGame(g) {
+        if(isPlaying) return;
+        currentGame = g;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        ['wheel','roll','battle','race'].forEach(id => document.getElementById('view-'+id).style.display = 'none');
+        document.getElementById('view-'+g).style.display = (g==='wheel'||g==='roll')?'flex':(g==='battle'?'flex':'block'); 
+        if(g==='battle') document.getElementById('view-battle').style.justifyContent = 'center';
+        
+        resetView();
+    }
+
+    function resetView() {
+        document.getElementById('winnerText').innerText = "Ready?";
+        document.getElementById('raceOverlay').style.display = 'none';
+        
+        document.getElementById('view-battle').innerHTML = '';
+        const raceContainer = document.getElementById('view-race');
+        Array.from(raceContainer.children).forEach(c => {
+            if(c.classList.contains('racer-container')) c.remove();
+        });
+
+        if(currentGame === 'wheel') drawWheel();
+        if(currentGame === 'roll') setupRoll();
+        if(currentGame === 'battle') setupBattle();
+        if(currentGame === 'race') setupRace();
+    }
+
+    function playGame() {
+        if(participants.length === 0 || isPlaying) return;
+        isPlaying = true;
+        document.getElementById('playBtn').disabled = true;
+        document.getElementById('winnerText').innerText = "Running...";
+
+        const winIdx = Math.floor(Math.random() * participants.length);
+        const winName = participants[winIdx];
+
+        if(currentGame === 'wheel') playWheel(winIdx, winName);
+        if(currentGame === 'roll') playRoll(winName);
+        if(currentGame === 'battle') playBattle(winName);
+        if(currentGame === 'race') playRace(winName);
+    }
+
+    function endGame(name) {
+        isPlaying = false;
+        document.getElementById('winnerText').innerText = "🎉 " + name + " 🎉";
+        document.getElementById('playBtn').disabled = false;
+        celebrate();
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${name}</td><td>${currentGame.toUpperCase()}</td>`;
+        document.getElementById('winnerBody').prepend(tr);
+
+        const idx = participants.indexOf(name);
+        if(idx > -1) participants.splice(idx, 1);
+        updateLists();
+
+        setTimeout(() => resetView(), 6000);
+    }
+
+    // --- GAMES ---
+
+    // WHEEL
+    function drawWheel() {
+        const ctx = document.getElementById('wheelCanvas').getContext('2d');
+        ctx.clearRect(0,0,800,800);
+        if(!participants.length) return;
+        const num=participants.length, arc=(2*Math.PI)/num;
+        for(let i=0; i<num; i++){
+            ctx.beginPath(); ctx.moveTo(400,400); ctx.arc(400,400,390,i*arc,(i+1)*arc);
+            ctx.fillStyle = colors[i%colors.length]; ctx.fill(); ctx.stroke();
+            ctx.save(); ctx.translate(400,400); ctx.rotate(i*arc + arc/2);
+            ctx.textAlign="right"; ctx.fillStyle="#222"; ctx.font="bold 24px Arial";
+            ctx.fillText(participants[i].substring(0,18), 370, 10); ctx.restore();
+        }
+    }
+    function playWheel(idx, name) {
+        const canvas = document.getElementById('wheelCanvas');
+        const arc = 360/participants.length;
+        const stopAngle = -(idx*arc)-(arc/2)-90;
+        const target = wheelRotation + 1800 + (stopAngle - (wheelRotation%360));
+        canvas.style.transition = "transform 6s cubic-bezier(0.1,0.7,0.1,1)";
+        canvas.style.transform = `rotate(${target}deg)`;
+        wheelRotation = target;
+        setTimeout(() => endGame(name), 6000);
+    }
+
+    // ROLL (FIXED ALIGNMENT v13)
+    function setupRoll() {
+        const strip = document.getElementById('rollStrip'); strip.innerHTML='';
+        strip.style.transition = 'none'; strip.style.transform = 'translateX(0)';
+        participants.slice(0,15).forEach(p => {
+            const d=document.createElement('div'); d.className='roll-card'; d.innerText=p; strip.appendChild(d);
+        });
+    }
+    function playRoll(name) {
+        const strip = document.getElementById('rollStrip'); strip.innerHTML='';
+        
+        // Ensure strictly 70 cards, winner at 50
+        const winPos = 50;
+        const totalCards = 70;
+        // Strict dimensions for math (140px + 10px margin = 150px)
+        const slotSize = 150;
+        
+        for(let i=0; i<totalCards; i++) {
+            const d=document.createElement('div'); d.className='roll-card';
+            if(i===winPos) { d.innerText=name; d.id='rollWinner'; }
+            else d.innerText = participants[Math.floor(Math.random()*participants.length)];
+            strip.appendChild(d);
+        }
+        
+        // Exact Math
+        const winWidth = document.querySelector('.roll-window').getBoundingClientRect().width;
+        // Center of winning card relative to strip start
+        const centerCard = (winPos * slotSize) + (slotSize / 2);
+        // Offset
+        const target = -(centerCard - (winWidth / 2));
+        
+        setTimeout(() => {
+            strip.style.transition = "transform 6s cubic-bezier(0.1,0.7,0.1,1)";
+            strip.style.transform = `translateX(${target}px)`;
+        },50);
+        setTimeout(() => {
+            document.getElementById('rollWinner').classList.add('winner-highlight');
+            endGame(name);
+        },6000);
+    }
+
+    // BATTLE
+    function setupBattle() {
+        const grid = document.getElementById('view-battle'); grid.innerHTML='';
+        participants.forEach(p => {
+            const d=document.createElement('div'); d.className='battle-card'; d.innerText=p; grid.appendChild(d);
+        });
+    }
+    function playBattle(name) {
+        const grid = document.getElementById('view-battle');
+        const cards = Array.from(grid.children);
+        const losers = cards.filter(c => c.innerText !== name);
+        const winner = cards.find(c => c.innerText === name);
+        losers.sort(()=>Math.random()-0.5);
+        let i = 0;
+        let int = setInterval(() => {
+            if(i >= losers.length) {
+                clearInterval(int);
+                if(winner) winner.classList.add('survivor');
+                endGame(name);
+                return;
+            }
+            losers[i].classList.add('eliminated');
+            i++;
+        }, Math.max(50, 4000/losers.length));
+    }
+
+    // RACE (PRE-LOADED)
+    function setupRace() { 
+        document.getElementById('view-race').style.display = 'block'; 
+        const track = document.getElementById('view-race');
+        raceEntities = []; // Reset global store
+
+        // Spawn cars immediately stationary
+        participants.forEach(p => {
+            const container = document.createElement('div');
+            container.className = 'racer-container';
+            const label = document.createElement('div');
+            label.className = 'racer-name'; label.innerText = p;
+            const vehicle = document.createElement('div');
+            vehicle.className = 'racer-vehicle';
+            vehicle.innerText = (Math.random()>0.5 ? '🏍️' : '🏎️');
+            container.appendChild(label); container.appendChild(vehicle);
+            
+            container.style.top = (Math.random()*80 + 5) + '%';
+            container.style.left = '0%';
+            track.appendChild(container);
+            
+            // Store reference for playRace
+            raceEntities.push({ el: container, name: p });
+        });
+    }
+
+    function playRace(name) {
+        // playRace now uses the pre-created entities
+        // We just assign logic to them
+        let racers = [];
+        
+        raceEntities.forEach(item => {
+            let crashDist = 999;
+            if(item.name !== name) crashDist = 10 + Math.random() * 70;
+            
+            racers.push({
+                el: item.el,
+                name: item.name,
+                x: 0,
+                spd: 0.1+Math.random()*0.2,
+                winner: (item.name === name),
+                active: true,
+                crashAt: crashDist
+            });
+        });
+
+        let timer = setInterval(() => {
+            let finished = false;
+            racers.forEach(r => {
+                if(!r.active) return;
+                r.x += r.spd;
+
+                if(!r.winner) {
+                    if(r.x > r.crashAt) {
+                         r.active = false;
+                         r.el.classList.add('crashed');
+                         r.el.querySelector('.racer-vehicle').innerText = '💥';
+                    }
+                    if(r.x > 88) r.x = 88; 
+                } else {
+                    if(r.x > 80) r.x += 0.3;
+                }
+                r.el.style.left = r.x + '%';
+                if(r.winner && r.x >= 94) finished = true;
+            });
+
+            if(finished) {
+                clearInterval(timer);
+                document.getElementById('raceOverlayName').innerText = name;
+                document.getElementById('raceOverlay').style.display = 'block';
+                racers.forEach(r => { if(r.winner) r.el.classList.add('winner-finish'); });
+                endGame(name);
+            }
+        }, 30);
+    }
+</script>
+
+</body>
+</html>
